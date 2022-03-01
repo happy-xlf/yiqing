@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>中国疫情展示</title>
+    <link rel="stylesheet" href="css/index.css" />
+    <script src="js/jquery.js" ></script>
+    <script src="js/echarts.min.js"></script>
+    <script type="text/javascript" src="js/china.js" ></script>
+    <script src='js/echarts-wordcloud.js'></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/map/js/world.js?_v_=1598903772045"></script>
+</head>
+<body>
+
+<header>
+    <h1>中国疫情数据可视化</h1>
+    <div class="showTime"></div>
+</header>
+<!-- 页面主体部分-->
+<section class="mainbox">
+    <div class="column">
+        <div class="panel bar">
+            <h2>中国确诊-TOP5</h2>
+            <div class="chart"></div>
+            <div class="panel-footer"></div>
+        </div>
+        <div class="panel line">
+            <h2>总体疫情变化</h2>
+            <div class="chart">图表</div>
+            <div class="panel-footer"></div>
+        </div>
+        <div class="panel pie">
+            <h2>疫情热词</h2>
+            <div class="chart">图表</div>
+            <div class="panel-footer"></div>
+        </div>
+    </div>
+    <div class="column">
+        <div class="no">
+            <div class="no-hd">
+                <ul>
+                    <!-- 感染人数 治愈人数 死亡人数 -->
+                </ul>
+            </div>
+            <div class="no-bd">
+                <ul>
+                    <li>感染人数</li>
+                    <li>治愈人数</li>
+                    <li>死亡人数</li>
+                </ul>
+
+            </div>
+            <div class="no-bd" style="padding-left:275px;padding-top: 10px">
+                <button onclick="china()" class="btn btn-success">返回上一级</button>
+            </div>
+        </div>
+        <!--地图模块 -->
+        <div class="map" style="color: white">
+            <div class="map1"></div>
+            <div class="map2"></div>
+            <div class="map3"></div>
+            <h2 style="text-align: center">全国各省疫情展示</h2>
+            <div class="chart">
+            </div>
+        </div>
+    </div>
+    <div class="column">
+        <div class="panel bar2">
+            <h2>全国重大省份治愈率排名</h2>
+            <div class="chart">图表</div>
+            <div class="panel-footer"></div>
+        </div>
+        <div class="panel line2">
+            <h2>重大省份感染总人数趋势图</h2>
+            <div class="chart">图表</div>
+            <div class="panel-footer"></div>
+        </div>
+        <div class="panel pie2">
+            <h2>除湖北，其他省份死亡排行榜</h2>
+            <div class="chart">图表</div>
+            <div class="panel-footer"></div>
+        </div>
+    </div>
+</section>
+
+<script>
+    //时间设置
+    var t=null;
+    t=setTimeout(time,1000);
+    function time() {
+        clearTimeout(t);
+        dt=new Date();
+        var y=dt.getFullYear();
+        var mt=dt.getMonth()+1;
+        var day=dt.getDate();
+        var h=dt.getHours();
+        var m=dt.getMinutes();
+        var s=dt.getSeconds();
+        var times=
+            "当前时间：" +
+            y +
+            "年" +
+            mt +
+            "月" +
+            day +
+            "-" +
+            h +
+            "时" +
+            m +
+            "分" +
+            s +
+            "秒";
+        $(".showTime").html(times);
+        t=setTimeout(time,1000);
+    }
+
+
+    //各大洲感染人数变化
+    (function () {
+        var myChart=echarts.init(document.querySelector(".line2 .chart"));
+        var cname=[];
+        var hb=[];
+        var sc=[];
+        var xj=[];
+        var hlj=[];
+        var bj=[];
+        $.post(
+            "chinalocalconfirmed",
+            function(data){
+                for(var i=0;i<data.length;i++)
+                {
+                    cname[i]=data[i].Date;
+                    hb[i]=data[i].provinceName;
+                    sc[i]=data[i].confirmedCount;
+                    xj[i]=data[i].curedCount;
+                    hlj[i]=data[i].deadCount;
+                    bj[i]=data[i].suspectedCount;
+                }
+                var option = {
+                    color:['#1089E7','#F57474','#56D0E3','#F8B448','#8B78F6'],
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'cross',
+                            label: {
+                                backgroundColor: '#6a7985'
+                            }
+                        }
+                    },
+                    legend: {
+                        data: ['河北', '四川', '新疆', '黑龙江', '北京'],
+                        textStyle:{
+                            color:'#fff'
+                        }
+                    },
+                    toolbox: {
+                        feature: {
+                            saveAsImage: {}
+                        }
+                    },
+                    grid: {
+                        left: '0%',
+                        right: '0%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    xAxis: [
+                        {
+                            type: 'category',
+                            boundaryGap: false,
+                            data: cname,
+                            axisLabel:{
+                                color:'#fff'
+                            }
+                        }
+                    ],
+                    yAxis: [
+                        {
+                            type: 'value',
+                            axisLabel:{
+                                color:'#fff'
+                            },
+                            //y轴分割线的颜色
+                            splitLine:{
+                                lineStyle:{
+                                    color:"rgba(255,255,255,.1)"
+                                }
+                            }
+                        }
+                    ],
+                    series: [
+                        {
+                            name: '河北',
+                            color:'#fff',
+                            type: 'line',
+                            areaStyle: {},
+                            data: hb
+                        },
+                        {
+                            name: '四川',
+                            type: 'line',
+                            areaStyle: {},
+                            data: sc
+                        },
+                        {
+                            name: '新疆',
+                            type: 'line',
+                            areaStyle: {},
+                            data: xj
+                        },
+                        {
+                            name: '黑龙江',
+                            type: 'line',
+                            areaStyle: {},
+                            data: hlj
+                        },
+                        {
+                            name: '北京',
+                            type: 'line',
+                            label: {
+                                normal: {
+                                    show: true,
+                                    position: 'top'
+                                }
+                            },
+                            areaStyle: {},
+                            data: bj
+                        }
+                    ]
+                };
+                myChart.setOption(option);
+            },
+            "json"
+        );
+    })();
+
+
+    //治愈率图表制作
+    (function () {
+        var myColor=['#1089E7','#F57474','#56D0E3','#F8B448','#8B78F6'];
+        var sdata = [];
+        var titlename = [];
+        var chart=echarts.init(document.querySelector(".bar2 .chart"));
+        $.post(
+            "chinafindcured",
+            function(data){
+                for(var i=0;i<5;i++)
+                {
+                    sdata[i]=data[i].ans;
+                    titlename[i]=data[i].provinceName;
+                }
+                var option = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'shadow'
+                        }
+                    },
+                    grid: {
+                        top: '10%',
+                        left: '2%',
+                        bottom: '10%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        show:false
+                    },
+                    yAxis: [
+                        {
+                            type: 'category',
+                            data: titlename,
+                            inverse:true,
+                            //不显示y轴的线
+                            axisLine:{
+                                show:false
+                            },
+                            //不显示刻度
+                            axisTick: {
+                                show:false
+                            },
+                            axisLabel:{
+                                color:'#fff'
+                            }
+                        },{
+                            type: 'category',
+                            //不显示y轴的线
+                            axisLine:{
+                                show:false
+                            },
+                            //不显示刻度
+                            axisTick: {
+                                show:false
+                            },
+                            axisLabel:{
+                                color:'#fff'
+                            }
+                        }
+                    ],
+                    series: [
+                        {
+                            name: "治愈",
+                            type: "bar",
+                            yAxisIndex: 0,
+                            data: sdata,
+                            barCategoryGap: 50,
+                            barWidth: 10,
+                            itemStyle: {
+                                normal: {
+                                    barBorderRadius: 20,
+                                    color: function(params) {
+                                        var num = myColor.length;
+                                        return myColor[params.dataIndex % num];
+                                    }
+                                }
+                            },
+                            label: {
+                                normal: {
+                                    show: true,
+                                    position: "inside",
+                                    formatter: "{c}%"
+                                }
+                            }
+                        },
+                        {
+                            name: "框",
+                            type: "bar",
+                            yAxisIndex: 1,
+                            barCategoryGap: 50,
+                            data: [100, 100, 100, 100, 100],
+                            barWidth: 14,
+                            itemStyle: {
+                                normal: {
+                                    color: "none",
+                                    borderColor: "#00c1de",
+                                    borderWidth: 3,
+                                    barBorderRadius: 15
+                                }
+                            }
+                        }
+                    ]
+                };
+                chart.setOption(option);
+            },
+            "json"
+        );
+    })();
+
+
+    //南丁格尔死亡排行榜前10
+    (function () {
+        var myChart=echarts.init(document.querySelector(".pie2 .chart"));
+        $.post(
+            "chinagetdead",
+            function(data){
+                var sdata=[];
+                for(var i=1;i<11;i++)
+                {
+                    var obj=new Object();
+                    obj.name=data[i].provinceName;
+                    obj.value=data[i].deadCount;
+                    sdata[i]=obj;
+                }
+                var option = {
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: '{a} <br/>{b} : {c} ({d}%)'
+                    },
+                    color:['#0099cc','#ffcccc','#ccff99','#ff9933'],
+                    toolbox: {
+                        show: true,
+                        feature: {
+                            mark: {show: true},
+                            dataView: {show: true, readOnly: false},
+                            magicType: {
+                                show: true,
+                                type: ['pie', 'funnel']
+                            },
+                            restore: {show: true},
+                            saveAsImage: {show: true}
+                        }
+                    },
+                    series: [
+                        {
+                            name: '死亡人数',
+                            type: 'pie',
+                            radius: ['20%', '80%'],
+                            center: ['50%', '60%'],
+                            roseType: 'radius',
+                            data: sdata
+                        }
+                    ]
+                };
+                myChart.setOption(option);
+            },
+            "json"
+        );
+    })();
+
+
+
+
+    (function () {
+        var myChart=echarts.init(document.querySelector(".bar .chart"));
+        option = {
+            color: ['#3398DB'],
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {            // 坐标轴指示器，坐标轴触发有效
+                    type: 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                }
+            },
+            grid: {
+                left: '0%',
+                right: '0%',
+                bottom: '4%',
+                top:"10px",
+                containLabel: true
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    data: [],
+                    axisTick: {
+                        alignWithLabel: true
+                    },
+                    //修改x坐标轴字体大小和颜色
+                    axisLabel:{
+                        color:"rgba(255,255,255,.6)",
+                        fontSize:"12"
+                    },
+                    //修改x坐标轴线不显示
+                    axisLine:{
+                        show:false
+                    }
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    axisLabel:{
+                        color:"rgba(255,255,255,.6)",
+                        fontSize:"12"
+                    },
+                    axisLine:{
+                        lineStyle:{
+                            color:"rgba(255,255,255,.1)",
+                            type:'solid',
+                            width:2
+                        }
+                    },
+                    //y轴分割线的颜色
+                    splitLine:{
+                        lineStyle:{
+                            color:"rgba(255,255,255,.1)"
+                        }
+                    }
+                }
+            ],
+            series: [
+                {
+                    name: '直接访问',
+                    type: 'bar',
+                    barWidth: '35%',
+                    data: [],
+                    itemStyle:{
+                        barBorderRadius:5
+                    }
+                }
+            ]
+        };
+        myChart.setOption(option);
+        //设置感染人数，治愈人数，死亡人数
+
+        $.post(
+            "chinagetconfirmed",
+            function(data){
+                var confirmed=0;
+                for(var i=0;i<data.length;i++)
+                    confirmed+= parseInt(data[i].confirmedCount);
+                var htmltext="<li style='color: red'>"+confirmed+"</li>";
+                $.post(
+                    "chinagetcured",
+                    function(data){
+                        var cured=0;
+                        for(var i=0;i<data.length;i++)
+                            cured+= parseInt(data[i].curedCount);
+                        htmltext+="<li style='color: greenyellow'>"+cured+"</li>";
+                        $.post(
+                            "chinagetdead",
+                            function(data){
+                                var deadsum=0;
+                                for(var i=0;i<data.length;i++)
+                                    deadsum+= parseInt(data[i].deadCount);
+                                htmltext+="<li>"+deadsum+"</li>";
+                                $(".no-hd ul").html(htmltext);
+                            },
+                            "json"
+                        );
+                    },
+                    "json"
+                );
+            },
+            "json"
+        );
+
+
+        // $.post(
+        //     "chinagetcured",
+        //     function(data){
+        //         var sum=0;
+        //         for(var i=0;i<data.length;i++)
+        //             sum+= parseInt(data[i].curedCount);
+        //         var htmltext="<li style='color: greenyellow'>"+sum+"</li>";
+        //         $(".no-hd ul").html(htmltext);
+        //     },
+        //     "json"
+        // );
+        // $.post(
+        //     "chinagetconfirmed",
+        //     function(data){
+        //         var sum=0;
+        //         for(var i=0;i<data.length;i++)
+        //             sum+= parseInt(data[i].confirmedCount);
+        //         var htmltext="<li style='color: red'>"+sum+"</li>";
+        //         $(".no-hd ul").prepend(htmltext);
+        //     },
+        //     "json"
+        // );
+        // $.post(
+        //     "chinagetdead",
+        //     function(data){
+        //         var sum=0;
+        //         for(var i=0;i<data.length;i++)
+        //             sum+= parseInt(data[i].deadCount);
+        //         var htmltext="<li>"+sum+"</li>";
+        //         $(".no-hd ul").append(htmltext);
+        //     },
+        //     "json"
+        // );
+        var cname=[];
+        var value=[];
+        //配置TOP5前感染国家
+        $.post(
+            "chinagetconfirmed",
+            function(data){
+                for(var i=0;i<5;i++)
+                {
+                    cname[i]=data[i].provinceName;
+                    value[i]=parseInt(data[i].confirmedCount);
+                }
+                myChart.setOption({
+                    xAxis:{
+                        //放横坐标的数组
+                        data:cname,
+                    },
+                    series:[{
+                        name:'确诊数',
+                        //每个横坐标对应的数值
+                        data:value
+                    }]
+                });
+            },
+            "json"
+        );
+
+        //4.让图表随着屏幕变动
+        window.addEventListener("resize",function () {
+            myChart.resize();
+        });
+    })();
+
+    //折线图
+    (function () {
+        var myChart=echarts.init(document.querySelector(".line .chart"));
+        var option = {
+            title: {
+                text: ''
+            },
+            color:['red','#33FF33','yellow'],
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data: ['总感染人数', '总治愈人数', '总死亡人数'],
+                itemHeight :9,//改变圆圈大小
+                textStyle:{
+                    fontSize:14,
+                    color:'white'
+                }
+            },
+            icon:"circle",
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            toolbox: {
+                feature: {
+                    saveAsImage: {}
+                }
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                //修改x坐标轴字体大小和颜色
+                axisLabel:{
+                    color:"rgba(255,255,255,.6)",
+                    fontSize:"12",
+                    interval:20,
+                    rotate:45
+                },
+                //修改x坐标轴线不显示
+                axisLine:{
+                    show:false
+                },
+                data: []
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel:{
+                    color:"rgba(255,255,255,.6)",
+                    fontSize:"12"
+                },
+                axisLine:{
+                    lineStyle:{
+                        color:"rgba(255,255,255,.1)",
+                        type:'solid',
+                        width:2
+                    }
+                },
+                //y轴分割线的颜色
+                splitLine:{
+                    lineStyle:{
+                        color:"rgba(255,255,255,.1)"
+                    }
+                }
+            },
+            series: [
+                {
+                    name: '总感染人数',
+                    type: 'line',
+                    smooth: true,
+                    data: []
+                },
+                {
+                    name: '总治愈人数',
+                    type: 'line',
+                    smooth: true,
+                    data: []
+                },
+                {
+                    name: '总死亡人数',
+                    type: 'line',
+                    smooth: true,
+                    data: []
+                }
+            ]
+        };
+        myChart.setOption(option);
+
+        var cname=[];
+        var confirmed=[];
+        var cured=[];
+        var dead=[];
+        //处理这段时间疫情总数变化趋势
+        $.ajax({
+            url:"chinagetall",
+            type:"POST",
+            dataType:"JSON",
+            async:true,
+            success:function(data){
+                //size=data.length-300;
+                for(var i=0;i<data.length;i++)
+                {
+                    cname[i]=data[i].provinceName;
+                    confirmed[i]=parseInt(data[i].confirmedCount);
+                    cured[i]=parseInt(data[i].curedCount);
+                    dead[i]=parseInt(data[i].deadCount);
+                }
+                myChart.setOption({
+                    xAxis:{
+                        //放横坐标的数组
+                        data:cname,
+                    },
+                    series:[
+                        {
+                            name: '总感染人数',
+                            type: 'line',
+                            data: confirmed
+                        },
+                        {
+                            name: '总治愈人数',
+                            type: 'line',
+                            data: cured
+                        },
+                        {
+                            name: '总死亡人数',
+                            type: 'line',
+                            data: dead
+                        }
+                    ]
+                });
+            }
+        });
+        //4.让图表随着屏幕变动
+        window.addEventListener("resize",function () {
+            myChart.resize();
+        });
+    })();
+    var provinces = {
+        //23个省
+        "台湾": "taiwan",
+        "河北": "hebei",
+        "山西": "shan1xi",
+        "辽宁": "liaoning",
+        "吉林": "jilin",
+        "黑龙江": "heilongjiang",
+        "江苏": "jiangsu",
+        "浙江": "zhejiang",
+        "安徽": "anhui",
+        "福建": "fujian",
+        "江西": "jiangxi",
+        "山东": "shandong",
+        "河南": "henan",
+        "湖北": "hubei",
+        "湖南": "hunan",
+        "广东": "guangdong",
+        "海南": "hainan",
+        "四川": "sichuan",
+        "贵州": "guizhou",
+        "云南": "yunnan",
+        "陕西": "shan3xi",
+        "甘肃": "gansu",
+        "青海": "qinghai",
+        //5个自治区
+        "新疆": "xinjiang",
+        "广西": "guangxi",
+        "内蒙古": "neimenggu",
+        "宁夏": "ningxia",
+        "西藏": "xizang",
+        //4个直辖市
+        "北京": "beijing",
+        "天津": "tianjin",
+        "上海": "shanghai",
+        "重庆": "chongqing",
+        //2个特别行政区
+        "香港": "hongkong",
+        "澳门": "macau"
+    };
+
+    function returnCityMap(date,code,name)
+    {
+        var myChart=echarts.init(document.querySelector(".map .chart"));
+
+        var citynamedata,datasize;
+        var datas;
+        if( name in provinces ){
+
+            $.getJSON('city/'+provinces[name]+'.json', function(data){
+                echarts.registerMap(name, data);
+                citynamedata=data;  //data.features[i].properties.name
+                datasize=data.features.length;
+            });
+
+            $.post(
+                'getcity',
+                {'date':date,'code':code},
+                function(result){
+                    json=JSON.parse(result);
+                    size=json.length;
+                    var datas=new Array();
+                    for(var i=0;i<size;i++)
+                        for(var j=0;j<datasize;j++)
+                            if(citynamedata.features[j].properties.name.indexOf(json[i].city)!=-1)
+                                //alert(citynamedata.features[j].properties.name+"$$$"+result[i].city);
+                                datas.push({
+                                    value:json[i].confirmedCount,
+                                    name:citynamedata.features[j].properties.name,
+                                });
+                    city_option={
+                        title: {
+                            text: '',
+                            x:'center'
+                        },
+                        tooltip:{
+                            formatter : function(params){
+                                index=params.dataIndex;
+                                tip="<p>"+params.name+"</p><p>确诊人数:"+json[index].confirmedCount+"</p><p>治愈人数:"+json[index].curedCount+"</p><p>死亡人数:"+json[index].deadCount+"</p>";
+                                return tip;
+                            }
+
+                        },
+                        visualMap: {
+                            type: 'piecewise',
+                            pieces: [
+                                { min: 1000, max: 1000000, label: '大于等于1000人', color: '#372a28' },
+                                { min: 500, max: 999, label: '确诊500-999人', color: '#4e160f' },
+                                { min: 150, max: 499, label: '确诊150-499人', color: '#974236' },
+                                { min: 50, max: 149, label: '确诊50-149人', color: '#ee7263' },
+                                { min: 1, max: 49, label: '确诊1-49人', color: '#f5bba7' },
+                            ],
+                            color: ['#E0022B', '#E09107', '#A3E00B'],
+                            textStyle:{
+                                color:'#fff'
+                            }
+                        },
+                        //配置属性
+                        series: [{
+
+                            type: 'map',
+                            mapType: name,
+                            data: datas,
+                            roam: false,
+                            itemStyle:{
+                                normal:{label:{show:true}},
+                                emphasis:{label:{show:true}}
+                            },
+                        }]
+                    };
+                    myChart.setOption(city_option);
+
+                }
+            )
+        }
+    }
+
+    function china()
+    {
+        //处理世界疫情地图
+        $.ajax({
+            url:"allchina",
+            type:"POST",
+            dataType:"JSON",
+            async:true,
+            success:function(result){//表示处理成功之后做什么,后面跟一个匿名函数。回调函数，表示处理页面处理完数据以后执行这个函数。data表示处理页面返回的值，用形参接收。
+                datas=new Array();
+                //var json=JSON.parse(result);
+                for(var i=0;i<result.length;i++)
+                {
+                    datas.push({
+                        value: result[i].confirmedCount,
+                        name: result[i].provinceName,
+                    })
+                }
+                //初始化echarts实例
+                var myChart=echarts.init(document.querySelector(".map .chart"));
+
+                var option = {
+                    title : {
+                        text: '',
+                        subtext: '',
+                        x:'center'
+                    },
+                    tooltip : {
+                        formatter : function(params){
+                            index=params.dataIndex;
+                            tip="<p>"+params.name+"</p><p>确诊人数:"+result[index].confirmedCount+"</p><p>治愈人数:"+result[index].curedCount+"</p><p>死亡人数:"+result[index].deadCount+"</p>";
+                            return tip;
+                        }
+                    },
+
+                    visualMap: {
+                        type: 'piecewise',
+                        pieces: [
+                            { min: 1000, max: 1000000, label: '大于等于1000人', color: '#372a28' },
+                            { min: 500, max: 999, label: '确诊500-999人', color: '#4e160f' },
+                            { min: 150, max: 499, label: '确诊150-499人', color: '#974236' },
+                            { min: 50, max: 149, label: '确诊50-149人', color: '#ee7263' },
+                            { min: 1, max: 49, label: '确诊1-49人', color: '#f5c1b7' },
+                        ],
+                        color: ['#E0022B', '#E09107', '#A3E00B'],
+                        textStyle:{
+                            color:'#fff'
+                        }
+                    },
+                    series : [
+                        {
+                            name: '疫情统计',
+                            type: 'map',
+                            mapType: 'china',
+                            roam: false,
+                            itemStyle:{
+                                normal:{label:{show:true}},
+                                emphasis:{label:{show:true}}
+                            },
+                            data:datas
+                        }
+                    ]
+                };
+                myChart.setOption(option);
+
+                myChart.on('click',function(params){
+                    var myDate = new Date();
+                    year=myDate.getFullYear();
+                    month=myDate.getMonth()+1;
+                    day=myDate.getDate();
+                    if(month<10)
+                        month="0"+month;
+                    if(day<10)
+                        day="0"+day;
+                    time=year+"-"+month+"-"+day;
+                    returnCityMap(time,result[params.dataIndex].code.substr(0,2),params.name);
+                })
+            },
+            error:function(){//处理页面出错以后执行的函数。
+            }
+        });
+    }
+
+    (function () {
+        china();
+    })();
+
+
+    function yuntu()
+    {
+        var chart=echarts.init(document.querySelector(".pie .chart"));
+        var option = {
+            tooltip: {},
+            series: [ {
+                type: 'wordCloud',
+                gridSize: 2,
+                sizeRange: [12, 50],
+                rotationRange: [-90, 90],
+                shape: 'pentagon',
+                width: 600,
+                height: 400,
+                drawOutOfBound: true,
+                textStyle: {
+                    normal: {
+                        fontFamily: '微软雅黑',
+                        color: function () {
+                            var colors = ['#fda67e', '#81cacc', '#cca8ba', "#88cc81", "#82a0c5", '#fddb7e', '#735ba1', '#bda29a', '#6e7074', '#546570', '#c4ccd3'];
+                            return colors[parseInt(Math.random() * 10)];
+                        }
+                    },
+                    emphasis: {
+                        shadowBlur: 10,
+                        shadowColor: '#333'
+                    }
+                },
+                data: [
+                    {"name": "郑州","value": "756"},
+                    {"name": "德尔塔病毒","value": "701"},
+                    {"name": "南京","value": "622"},
+                    {"name": "密接","value": "579"},
+                    {"name": "变异","value": "525"},
+                    {"name": "次密接","value": "479"},
+                    {"name": "Delta变异毒株","value": "443"},
+                    {"name": "钟南山","value": "386"},
+                    {"name": "呼吸","value": "345"},
+                    {"name": "肺炎","value": "327"},
+                    {"name": "境外输入","value": "298"},
+                    {"name": "控制中心","value": "256"},
+                    {"name": "急性","value": "213"},
+                    {"name": "冠状病毒","value": "171"},
+                    {"name": "逆增长","value": "136"},
+                    {"name": "隔离","value": "114"},
+                    {"name": "检测盒","value": "98"},
+                    {"name": "阳性","value": "75"},
+                    {"name": "新增","value": "46"},
+                    {"name": "责任","value": "26"}],
+
+            }]
+        };
+
+        chart.setOption(option);
+        window.onresize = chart.resize;
+        setTimeout("yuntu()",5000);
+    }
+
+    (function () {
+        yuntu();
+    })();
+
+
+</script>
+<script src="js/flexible.js"></script>
+</body>
+</html>

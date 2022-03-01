@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>世界疫情总览</title>
+    <link rel="stylesheet" href="css/index.css" />
+    <script src="js/jquery.js" ></script>
+    <script src="js/echarts.min.js"></script>
+    <script src="js/echarts-wordcloud.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/map/js/world.js?_v_=1598903772045"></script>
+<!--    <script type="text/javascript" src="https://www.echartsjs.com/examples/vendors/echarts/map/js/world.js?_v_=1584687926098"></script>-->
+</head>
+<body>
+
+<header>
+    <h1>全球疫情数据可视化</h1>
+    <div class="showTime"></div>
+</header>
+<!-- 页面主体部分-->
+<section class="mainbox">
+    <div class="column">
+        <div class="panel bar">
+            <h2>世界确诊-TOP5</h2>
+            <div class="chart"></div>
+            <div class="panel-footer"></div>
+        </div>
+        <div class="panel line">
+            <h2>总体疫情变化</h2>
+            <div class="chart">图表</div>
+            <div class="panel-footer"></div>
+        </div>
+        <div class="panel pie">
+            <h2>疫情热词分析</h2>
+            <div class="chart">图表</div>
+            <div class="panel-footer"></div>
+        </div>
+    </div>
+    <div class="column">
+        <div class="no">
+            <div class="no-hd">
+                <ul>
+                    <!-- 感染人数 治愈人数 死亡人数 -->
+                </ul>
+            </div>
+            <div class="no-bd">
+                <ul>
+                    <li>感染人数</li>
+                    <li>治愈人数</li>
+                    <li>死亡人数</li>
+                </ul>
+            </div>
+        </div>
+        <!--地图模块 -->
+        <div class="map">
+            <div class="map1"></div>
+            <div class="map2"></div>
+            <div class="map3"></div>
+            <div class="chart">地图模块</div>
+        </div>
+    </div>
+    <div class="column">
+        <div class="panel bar2">
+            <h2>全球五大强国治愈率排名</h2>
+            <div class="chart">图表</div>
+            <div class="panel-footer"></div>
+        </div>
+        <div class="panel line2">
+            <h2>各大洲感染总人数趋势图</h2>
+            <div class="chart">图表</div>
+            <div class="panel-footer"></div>
+        </div>
+        <div class="panel pie2">
+            <h2>全球死亡-排行榜TOP5</h2>
+            <div class="chart">图表</div>
+            <div class="panel-footer"></div>
+        </div>
+    </div>
+</section>
+
+<script>
+    //时间设置
+    var t=null;
+    t=setTimeout(time,1000);
+    function time() {
+        clearTimeout(t);
+        dt=new Date();
+        var y=dt.getFullYear();
+        var mt=dt.getMonth()+1;
+        var day=dt.getDate();
+        var h=dt.getHours();
+        var m=dt.getMinutes();
+        var s=dt.getSeconds();
+        var times=
+            "当前时间：" +
+            y +
+            "年" +
+            mt +
+            "月" +
+            day +
+            "-" +
+            h +
+            "时" +
+            m +
+            "分" +
+            s +
+            "秒";
+        $(".showTime").html(times);
+        t=setTimeout(time,1000);
+    }
+
+
+    //各大洲感染人数变化
+    (function () {
+        var myChart=echarts.init(document.querySelector(".line2 .chart"));
+        var cname=[];
+        var yz=[];
+        var bmz=[];
+        var oz=[];
+        var dyz=[];
+        var others=[];
+        $.post(
+            "localconfirmed",
+            function(data){
+                for(var i=0;i<data.length;i++)
+                {
+                    cname[i]=data[i].Date;
+                    yz[i]=data[i].name;
+                    bmz[i]=data[i].confirmed;
+                    oz[i]=data[i].cured;
+                    dyz[i]=data[i].dead;
+                    others[i]=data[i].suspected;
+                }
+                var option = {
+                    color:['#1089E7','#F57474','#56D0E3','#F8B448','#8B78F6'],
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'cross',
+                            label: {
+                                backgroundColor: '#6a7985'
+                            }
+                        }
+                    },
+                    legend: {
+                        data: ['亚洲', '北美洲', '欧洲', '大洋洲', '其他'],
+                        textStyle:{
+                            color:'#fff'
+                        }
+                    },
+                    toolbox: {
+                        feature: {
+                            saveAsImage: {}
+                        }
+                    },
+                    grid: {
+                        left: '0%',
+                        right: '0%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    xAxis: [
+                        {
+                            type: 'category',
+                            boundaryGap: false,
+                            data: cname,
+                            axisLabel:{
+                                color:'#fff'
+                            }
+                        }
+                    ],
+                    yAxis: [
+                        {
+                            type: 'value',
+                            axisLabel:{
+                                color:'#fff'
+                            },
+                            //y轴分割线的颜色
+                            splitLine:{
+                                lineStyle:{
+                                    color:"rgba(255,255,255,.1)"
+                                }
+                            }
+                        }
+                    ],
+                    series: [
+                        {
+                            name: '亚洲',
+                            color:'#fff',
+                            type: 'line',
+                            areaStyle: {},
+                            data: yz
+                        },
+                        {
+                            name: '北美洲',
+                            type: 'line',
+                            areaStyle: {},
+                            data: bmz
+                        },
+                        {
+                            name: '欧洲',
+                            type: 'line',
+                            areaStyle: {},
+                            data: oz
+                        },
+                        {
+                            name: '大洋洲',
+                            type: 'line',
+                            areaStyle: {},
+                            data: dyz
+                        },
+                        {
+                            name: '其他',
+                            type: 'line',
+                            label: {
+                                normal: {
+                                    show: true,
+                                    position: 'top'
+                                }
+                            },
+                            areaStyle: {},
+                            data: others
+                        }
+                    ]
+                };
+
+                myChart.setOption(option);
+            },
+            "json"
+        );
+
+
+
+    })();
+
+
+    //治愈率图表制作
+    (function () {
+        var myColor=['#1089E7','#F57474','#56D0E3','#F8B448','#8B78F6'];
+        var sdata = [];
+        var titlename = [];
+        var chart=echarts.init(document.querySelector(".bar2 .chart"));
+        $.post(
+            "findcured",
+            function(data){
+                for(var i=0;i<5;i++)
+                {
+                    sdata[i]=data[i].ans;
+                    titlename[i]=data[i].name;
+                }
+                var option = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'shadow'
+                        }
+                    },
+                    grid: {
+                        top: '10%',
+                        left: '2%',
+                        bottom: '10%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        show:false
+                    },
+                    yAxis: [
+                        {
+                            type: 'category',
+                            data: titlename,
+                            inverse:true,
+                            //不显示y轴的线
+                            axisLine:{
+                                show:false
+                            },
+                            //不显示刻度
+                            axisTick: {
+                                show:false
+                            },
+                            axisLabel:{
+                                color:'#fff'
+                            }
+                        },{
+                            type: 'category',
+                            //不显示y轴的线
+                            axisLine:{
+                                show:false
+                            },
+                            //不显示刻度
+                            axisTick: {
+                                show:false
+                            },
+                            axisLabel:{
+                                color:'#fff'
+                            }
+                        }
+                    ],
+                    series: [
+                        {
+                            name: "治愈",
+                            type: "bar",
+                            yAxisIndex: 0,
+                            data: sdata,
+                            barCategoryGap: 50,
+                            barWidth: 10,
+                            itemStyle: {
+                                normal: {
+                                    barBorderRadius: 20,
+                                    color: function(params) {
+                                        var num = myColor.length;
+                                        return myColor[params.dataIndex % num];
+                                    }
+                                }
+                            },
+                            label: {
+                                normal: {
+                                    show: true,
+                                    position: "inside",
+                                    formatter: "{c}%"
+                                }
+                            }
+                        },
+                        {
+                            name: "框",
+                            type: "bar",
+                            yAxisIndex: 1,
+                            barCategoryGap: 50,
+                            data: [100, 100, 100, 100, 100],
+                            barWidth: 14,
+                            itemStyle: {
+                                normal: {
+                                    color: "none",
+                                    borderColor: "#00c1de",
+                                    borderWidth: 3,
+                                    barBorderRadius: 15
+                                }
+                            }
+                        }
+                    ]
+                };
+                chart.setOption(option);
+            },
+            "json"
+        );
+    })();
+
+
+    //南丁格尔死亡排行榜前10
+    (function () {
+        var myChart=echarts.init(document.querySelector(".pie2 .chart"));
+        $.post(
+            "getdead",
+            function(data){
+                var sdata=[];
+                for(var i=0;i<10;i++)
+                {
+                    var obj=new Object();
+                    obj.name=data[i].name;
+                    obj.value=data[i].dead;
+                    sdata[i]=obj;
+                }
+                var option = {
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: '{a} <br/>{b} : {c} ({d}%)'
+                    },
+                    color:['#0099cc','#ffcccc','#ccff99','#ff9933'],
+                    toolbox: {
+                        show: true,
+                        feature: {
+                            mark: {show: true},
+                            dataView: {show: true, readOnly: false},
+                            magicType: {
+                                show: true,
+                                type: ['pie', 'funnel']
+                            },
+                            restore: {show: true},
+                            saveAsImage: {show: true}
+                        }
+                    },
+                    series: [
+                        {
+                            name: '死亡人数',
+                            type: 'pie',
+                            radius: ['20%', '80%'],
+                            center: ['50%', '60%'],
+                            roseType: 'radius',
+                            data: sdata
+                        }
+                    ]
+                };
+                myChart.setOption(option);
+            },
+            "json"
+        );
+    })();
+
+
+
+
+    (function () {
+        var myChart=echarts.init(document.querySelector(".bar .chart"));
+        option = {
+            color: ['#3398DB'],
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {            // 坐标轴指示器，坐标轴触发有效
+                    type: 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                }
+            },
+            grid: {
+                left: '0%',
+                right: '0%',
+                bottom: '4%',
+                top:"10px",
+                containLabel: true
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    data: [],
+                    axisTick: {
+                        alignWithLabel: true
+                    },
+                    //修改x坐标轴字体大小和颜色
+                    axisLabel:{
+                        color:"rgba(255,255,255,.6)",
+                        fontSize:"12"
+                    },
+                    //修改x坐标轴线不显示
+                    axisLine:{
+                        show:false
+                    }
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    axisLabel:{
+                        color:"rgba(255,255,255,.6)",
+                        fontSize:"12"
+                    },
+                    axisLine:{
+                        lineStyle:{
+                            color:"rgba(255,255,255,.1)",
+                            type:'solid',
+                            width:2
+                        }
+                    },
+                    //y轴分割线的颜色
+                    splitLine:{
+                        lineStyle:{
+                            color:"rgba(255,255,255,.1)"
+                        }
+                    }
+                }
+            ],
+            series: [
+                {
+                    name: '直接访问',
+                    type: 'bar',
+                    barWidth: '35%',
+                    data: [],
+                    itemStyle:{
+                        barBorderRadius:5
+                    }
+                }
+            ]
+        };
+        myChart.setOption(option);
+        //设置感染人数，治愈人数，死亡人数
+
+        $.post(
+            "getconfirmed",
+            function(data){
+                var confirmed=0;
+                for(var i=0;i<data.length;i++)
+                    confirmed+= parseInt(data[i].confirmed);
+                var htmltext="<li style='color: red'>"+confirmed+"</li>";
+                $.post(
+                    "getcured",
+                    function(data){
+                        var cured=0;
+                        for(var i=0;i<data.length;i++)
+                            cured+= parseInt(data[i].cured);
+                        htmltext+="<li style='color: greenyellow'>"+cured+"</li>";
+                        $.post(
+                            "getdead",
+                            function(data){
+                                var deadsum=0;
+                                for(var i=0;i<data.length;i++)
+                                    deadsum+= parseInt(data[i].dead);
+                                htmltext+="<li>"+deadsum+"</li>";
+                                $(".no-hd ul").html(htmltext);
+                            },
+                            "json"
+                        );
+                    },
+                    "json"
+                );
+            },
+            "json"
+        );
+
+        var cname=[];
+        var value=[];
+        //配置TOP5前感染国家
+        $.post(
+            "getconfirmed",
+            function(data){
+                for(var i=0;i<5;i++)
+                {
+                    cname[i]=data[i].name;
+                    value[i]=parseInt(data[i].confirmed);
+                }
+                myChart.setOption({
+                    xAxis:{
+                        //放横坐标的数组
+                        data:cname,
+                    },
+                    series:[{
+                        name:'确诊数',
+                        //每个横坐标对应的数值
+                        data:value
+                    }]
+                });
+            },
+            "json"
+        );
+
+
+        //4.让图表随着屏幕变动
+        window.addEventListener("resize",function () {
+            myChart.resize();
+        });
+    })();
+
+    //折线图
+    (function () {
+        var myChart=echarts.init(document.querySelector(".line .chart"));
+        var option = {
+            title: {
+                text: ''
+            },
+            color:['red','#33FF33','yellow'],
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data: ['总感染人数', '总治愈人数', '总死亡人数'],
+                itemHeight :9,//改变圆圈大小
+                textStyle:{
+                    fontSize:14,
+                    color:'white'
+                }
+            },
+            icon:"circle",
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            toolbox: {
+                feature: {
+                    saveAsImage: {}
+                }
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                //修改x坐标轴字体大小和颜色
+                axisLabel:{
+                    color:"rgba(255,255,255,.6)",
+                    fontSize:"12",
+                    interval:20,
+                    rotate:45
+                },
+                //修改x坐标轴线不显示
+                axisLine:{
+                    show:false
+                },
+                data: []
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel:{
+                    color:"rgba(255,255,255,.6)",
+                    fontSize:"12"
+                },
+                axisLine:{
+                    lineStyle:{
+                        color:"rgba(255,255,255,.1)",
+                        type:'solid',
+                        width:2
+                    }
+                },
+                //y轴分割线的颜色
+                splitLine:{
+                    lineStyle:{
+                        color:"rgba(255,255,255,.1)"
+                    }
+                }
+            },
+            series: [
+                {
+                    name: '总感染人数',
+                    type: 'line',
+                    smooth: true,
+                    data: []
+                },
+                {
+                    name: '总治愈人数',
+                    type: 'line',
+                    smooth: true,
+                    data: []
+                },
+                {
+                    name: '总死亡人数',
+                    type: 'line',
+                    smooth: true,
+                    data: []
+                }
+            ]
+        };
+        myChart.setOption(option);
+
+        var cname=[];
+        var confirmed=[];
+        var cured=[];
+        var dead=[];
+        //处理这段时间疫情总数变化趋势
+        $.ajax({
+            url:"getall",
+            type:"POST",
+            dataType:"JSON",
+            async:true,
+            success:function(data){
+                for(var i=0;i<data.length;i++)
+                {
+                    cname[i]=data[i].name;
+                    confirmed[i]=parseInt(data[i].confirmed);
+                    cured[i]=parseInt(data[i].cured);
+                    dead[i]=parseInt(data[i].dead);
+                }
+                myChart.setOption({
+                    xAxis:{
+                        //放横坐标的数组
+                        data:cname,
+                    },
+                    series:[
+                        {
+                        name: '总感染人数',
+                        type: 'line',
+                        data: confirmed
+                        },
+                        {
+                            name: '总治愈人数',
+                            type: 'line',
+                            data: cured
+                        },
+                        {
+                            name: '总死亡人数',
+                            type: 'line',
+                            data: dead
+                        }
+                    ]
+                });
+            }
+        });
+        //4.让图表随着屏幕变动
+        window.addEventListener("resize",function () {
+            myChart.resize();
+        });
+    })();
+
+    (function () {
+        //处理世界疫情地图
+        $.ajax({
+            url:"allworld",
+            type:"POST",
+            dataType:"JSON",
+            async:true,
+            success:function(data){//表示处理成功之后做什么,后面跟一个匿名函数。回调函数，表示处理页面处理完数据以后执行这个函数。data表示处理页面返回的值，用形参接收。
+                var mydata = new Array(0);
+
+                for(var i=0;i<data.length;i++){
+                    var d = {
+
+                    };
+                    d["name"] = data[i].name;//.substring(0, 2);
+                    d["value"] = data[i].confirmed;
+                    d["Yisi_num"] = data[i].suspected;
+                    d["Cured_num"] = data[i].cured;
+                    d["dead_num"] = data[i].dead;
+                    mydata.push(d);
+                }
+                //初始化echarts实例
+                var myChart=echarts.init(document.querySelector(".map .chart"));
+                // 指定图表的配置项和数据
+                var  option = {
+                    tooltip : {
+                        trigger: 'item',
+                        formatter : function(params) {
+                            return params.name + '<br/>' + '确诊人数 : '
+                                + params.value + '<br/>' + '死亡人数 : '
+                                + params['data'].dead_num + '<br/>' + '治愈人数 : '
+                                + params['data'].Cured_num + '<br/>'+ '疑似患者人数 : '
+                                + params['data'].Yisi_num;
+                        }//数据格式化
+                    },
+                    title: {
+                        text: '世界疫情图',
+                        left: 'center',
+                        textStyle:{
+                            color:'#fff'
+                        }
+                    },
+                    legend: {
+                        orient: 'vertical',
+                        left: 'left',
+                        data: {
+                            name:'世界疫情图',
+                            textStyle:{
+                                color:'#fff'
+                            }
+                        },
+                    },
+                    visualMap: {
+                        type: 'piecewise',
+                        pieces: [
+                            { min: 700000, max: 50000000, label: '确诊700000人以上', color: '#550101' },
+                            { min: 100000, max: 6999999, label: '确诊100000-699999人', color: '#a92919' },
+                            { min: 50000, max: 99999, label: '确诊50000-99999人', color: '#af4e41' },
+                            { min: 15000, max: 49999, label: '确诊15000-49999人', color: '#ee7263' },
+                            { min: 5000, max: 14999, label: '确诊5000-14999人', color: '#f5bba7' },
+                            { min: 0, max: 4999, label: '确诊1-4999人', color: '#fdf2d5' },
+                        ],
+                        color: ['#372a28', '#6f1f07', '#f5bba7'],
+                        textStyle:{
+                            color:'#fff'
+                        }
+                    },
+                    toolbox: {
+                        show: true,
+                        orient: 'vertical',
+                        left: 'right',
+                        top: 'center',
+                        feature: {
+                            mark: { show: true },
+                            dataView: { show: true, readOnly: false },
+                            restore: { show: true },
+                            saveAsImage: { show: true }
+                        }
+                    },
+                    roamController: {
+                        show: true,
+                        left: 'right',
+                        mapTypeControl: {
+                            'world': true
+                        }
+                    },
+                    series: [
+                        {
+                            name: '确诊数',
+                            type: 'map',
+                            mapType: 'world',
+                            nameMap : {"Canada": "加拿大",
+                                "Turkmenistan": "土库曼斯坦",
+                                "Saint Helena": "圣赫勒拿",
+                                "Lao PDR": "老挝",
+                                "Lithuania": "立陶宛",
+                                "Cambodia": "柬埔寨",
+                                "Ethiopia": "埃塞俄比亚",
+                                "Faeroe Is.": "法罗群岛",
+                                "Swaziland": "斯威士兰",
+                                "Palestine": "巴勒斯坦",
+                                "Belize": "伯利兹",
+                                "Argentina": "阿根廷",
+                                "Bolivia": "玻利维亚",
+                                "Cameroon": "喀麦隆",
+                                "Burkina Faso": "布基纳法索",
+                                "Aland": "奥兰群岛",
+                                "Bahrain": "巴林",
+                                "Saudi Arabia": "沙特阿拉伯",
+                                "Fr. Polynesia": "法属波利尼西亚",
+                                "Cape Verde": "佛得角",
+                                "W. Sahara": "西撒哈拉",
+                                "Slovenia": "斯洛文尼亚",
+                                "Guatemala": "危地马拉",
+                                "Guinea": "几内亚",
+                                "Dem. Rep. Congo": "刚果（金）",
+                                "Germany": "德国",
+                                "Spain": "西班牙",
+                                "Liberia": "利比里亚",
+                                "Netherlands": "荷兰",
+                                "Jamaica": "牙买加",
+                                "Solomon Is.": "所罗门群岛",
+                                "Oman": "阿曼",
+                                "Tanzania": "坦桑尼亚",
+                                "Costa Rica": "哥斯达黎加",
+                                "Isle of Man": "曼岛",
+                                "Gabon": "加蓬",
+                                "Niue": "纽埃",
+                                "Bahamas": "巴哈马",
+                                "New Zealand": "新西兰",
+                                "Yemen": "也门",
+                                "Jersey": "泽西岛",
+                                "Pakistan": "巴基斯坦",
+                                "Albania": "阿尔巴尼亚",
+                                "Samoa": "萨摩亚",
+                                "Czech Rep.": "捷克",
+                                "United Arab Emirates": "阿拉伯联合酋长国",
+                                "Guam": "关岛",
+                                "India": "印度",
+                                "Azerbaijan": "阿塞拜疆",
+                                "N. Mariana Is.": "北马里亚纳群岛",
+                                "Lesotho": "莱索托",
+                                "Kenya": "肯尼亚",
+                                "Belarus": "白俄罗斯",
+                                "Tajikistan": "塔吉克斯坦",
+                                "Turkey": "土耳其",
+                                "Afghanistan": "阿富汗",
+                                "Bangladesh": "孟加拉国",
+                                "Mauritania": "毛里塔尼亚",
+                                "Dem. Rep. Korea": "朝鲜",
+                                "Saint Lucia": "圣卢西亚",
+                                "Br. Indian Ocean Ter.": "英属印度洋领地",
+                                "Mongolia": "蒙古",
+                                "France": "法国",
+                                "Cura?ao": "库拉索岛",
+                                "S. Sudan": "南苏丹",
+                                "Rwanda": "卢旺达",
+                                "Slovakia": "斯洛伐克",
+                                "Somalia": "索马里",
+                                "Peru": "秘鲁",
+                                "Vanuatu": "瓦努阿图",
+                                "Norway": "挪威",
+                                "Malawi": "马拉维",
+                                "Benin": "贝宁",
+                                "St. Vin. and Gren.": "圣文森特和格林纳丁斯",
+                                "Korea": "韩国",
+                                "Singapore": "新加坡",
+                                "Montenegro": "黑山共和国",
+                                "Cayman Is.": "开曼群岛",
+                                "Togo": "多哥",
+                                "China": "中国",
+                                "Heard I. and McDonald Is.": "赫德岛和麦克唐纳群岛",
+                                "Armenia": "亚美尼亚",
+                                "Falkland Is.": "马尔维纳斯群岛（福克兰）",
+                                "Ukraine": "乌克兰",
+                                "Ghana": "加纳",
+                                "Tonga": "汤加",
+                                "Finland": "芬兰",
+                                "Libya": "利比亚",
+                                "Dominican Rep.": "多米尼加",
+                                "Indonesia": "印度尼西亚",
+                                "Mauritius": "毛里求斯",
+                                "Eq. Guinea": "赤道几内亚",
+                                "Sweden": "瑞典",
+                                "Vietnam": "越南",
+                                "Mali": "马里",
+                                "Russia": "俄罗斯",
+                                "Bulgaria": "保加利亚",
+                                "United States": "美国",
+                                "Romania": "罗马尼亚",
+                                "Angola": "安哥拉",
+                                "Chad": "乍得",
+                                "South Africa": "南非",
+                                "Fiji": "斐济",
+                                "Liechtenstein": "列支敦士登",
+                                "Malaysia": "马来西亚",
+                                "Austria": "奥地利",
+                                "Mozambique": "莫桑比克",
+                                "Uganda": "乌干达",
+                                "Japan": "日本",
+                                "Niger": "尼日尔",
+                                "Brazil": "巴西",
+                                "Kuwait": "科威特",
+                                "Panama": "巴拿马",
+                                "Guyana": "圭亚那",
+                                "Madagascar": "马达加斯加",
+                                "Luxembourg": "卢森堡",
+                                "American Samoa": "美属萨摩亚",
+                                "Andorra": "安道尔",
+                                "Ireland": "爱尔兰",
+                                "Italy": "意大利",
+                                "Nigeria": "尼日利亚",
+                                "Turks and Caicos Is.": "特克斯和凯科斯群岛",
+                                "Ecuador": "厄瓜多尔",
+                                "U.S. Virgin Is.": "美属维尔京群岛",
+                                "Brunei": "文莱",
+                                "Australia": "澳大利亚",
+                                "Iran": "伊朗",
+                                "Algeria": "阿尔及利亚",
+                                "El Salvador": "萨尔瓦多",
+                                "C?te d'Ivoire": "科特迪瓦",
+                                "Chile": "智利",
+                                "Puerto Rico": "波多黎各",
+                                "Belgium": "比利时",
+                                "Thailand": "泰国",
+                                "Haiti": "海地",
+                                "Iraq": "伊拉克",
+                                "S?o Tomé and Principe": "圣多美和普林西比",
+                                "Sierra Leone": "塞拉利昂",
+                                "Georgia": "格鲁吉亚",
+                                "Denmark": "丹麦",
+                                "Philippines": "菲律宾",
+                                "S. Geo. and S. Sandw. Is.": "南乔治亚岛和南桑威奇群岛",
+                                "Moldova": "摩尔多瓦",
+                                "Morocco": "摩洛哥",
+                                "Namibia": "纳米比亚",
+                                "Malta": "马耳他",
+                                "Guinea-Bissau": "几内亚比绍",
+                                "Kiribati": "基里巴斯",
+                                "Switzerland": "瑞士",
+                                "Grenada": "格林纳达",
+                                "Seychelles": "塞舌尔",
+                                "Portugal": "葡萄牙",
+                                "Estonia": "爱沙尼亚",
+                                "Uruguay": "乌拉圭",
+                                "Antigua and Barb.": "安提瓜和巴布达",
+                                "Lebanon": "黎巴嫩",
+                                "Uzbekistan": "乌兹别克斯坦",
+                                "Tunisia": "突尼斯",
+                                "Djibouti": "吉布提",
+                                "Greenland": "格陵兰",
+                                "Timor-Leste": "东帝汶",
+                                "Dominica": "多米尼克",
+                                "Colombia": "哥伦比亚",
+                                "Burundi": "布隆迪",
+                                "Bosnia and Herz.": "波斯尼亚和黑塞哥维那",
+                                "Cyprus": "塞浦路斯",
+                                "Barbados": "巴巴多斯",
+                                "Qatar": "卡塔尔",
+                                "Palau": "帕劳",
+                                "Bhutan": "不丹",
+                                "Sudan": "苏丹",
+                                "Nepal": "尼泊尔",
+                                "Micronesia": "密克罗尼西亚",
+                                "Bermuda": "百慕大",
+                                "Suriname": "苏里南",
+                                "Venezuela": "委内瑞拉",
+                                "Israel": "以色列",
+                                "St. Pierre and Miquelon": "圣皮埃尔和密克隆群岛",
+                                "Central African Rep.": "中非",
+                                "Iceland": "冰岛",
+                                "Zambia": "赞比亚",
+                                "Senegal": "塞内加尔",
+                                "Papua New Guinea": "巴布亚新几内亚",
+                                "Trinidad and Tobago": "特立尼达和多巴哥",
+                                "Zimbabwe": "津巴布韦",
+                                "Jordan": "约旦",
+                                "Gambia": "冈比亚",
+                                "Kazakhstan": "哈萨克斯坦",
+                                "Poland": "波兰",
+                                "Eritrea": "厄立特里亚",
+                                "Kyrgyzstan": "吉尔吉斯斯坦",
+                                "Montserrat": "蒙特塞拉特",
+                                "New Caledonia": "新喀里多尼亚",
+                                "Macedonia": "马其顿",
+                                "Paraguay": "巴拉圭",
+                                "Latvia": "拉脱维亚",
+                                "Hungary": "匈牙利",
+                                "Syria": "叙利亚",
+                                "Honduras": "洪都拉斯",
+                                "Myanmar": "缅甸",
+                                "Mexico": "墨西哥",
+                                "Egypt": "埃及",
+                                "Nicaragua": "尼加拉瓜",
+                                "Cuba": "古巴",
+                                "Serbia": "塞尔维亚",
+                                "Comoros": "科摩罗",
+                                "United Kingdom": "英国",
+                                "Fr. S. Antarctic Lands": "南极洲",
+                                "Congo": "刚果（布）",
+                                "Greece": "希腊",
+                                "Sri Lanka": "斯里兰卡",
+                                "Croatia": "克罗地亚",
+                                "Botswana": "博茨瓦纳",
+                                "Siachen Glacier": "锡亚琴冰川地区"
+                            },
+                            roam: false,
+                            label: {
+                                show: false,
+                                color: 'blue'
+                            },
+                            data: mydata
+                        }
+                    ]
+                };
+                //使用指定的配置项和数据显示图表
+                myChart.setOption(option);
+
+                myChart.on('click',function(params){
+                    if (params.name=="中国")
+                        location.href="province.html";
+                })
+            },
+            error:function(){//处理页面出错以后执行的函数。
+            }
+        });
+    })();
+
+
+    function yuntu()
+    {
+        var chart=echarts.init(document.querySelector(".pie .chart"));
+        var option = {
+            tooltip: {},
+            series: [ {
+                type: 'wordCloud',
+                gridSize: 2,
+                sizeRange: [12, 50],
+                rotationRange: [-90, 90],
+                shape: 'pentagon',
+                width: 600,
+                height: 400,
+                drawOutOfBound: true,
+                textStyle: {
+                    normal: {
+                        fontFamily: '微软雅黑',
+                        color: function () {
+                            var colors = ['#fda67e', '#81cacc', '#cca8ba', "#88cc81", "#82a0c5", '#fddb7e', '#735ba1', '#bda29a', '#6e7074', '#546570', '#c4ccd3'];
+                            return colors[parseInt(Math.random() * 10)];
+                        }
+                    },
+                    emphasis: {
+                        shadowBlur: 10,
+                        shadowColor: '#333'
+                    }
+                },
+                data: [
+                    {"name": "郑州","value": "756"},
+                    {"name": "德尔塔病毒","value": "701"},
+                    {"name": "南京","value": "622"},
+                    {"name": "密接","value": "579"},
+                    {"name": "变异","value": "525"},
+                    {"name": "次密接","value": "479"},
+                    {"name": "Delta变异毒株","value": "443"},
+                    {"name": "钟南山","value": "386"},
+                    {"name": "呼吸","value": "345"},
+                    {"name": "肺炎","value": "327"},
+                    {"name": "境外输入","value": "298"},
+                    {"name": "控制中心","value": "256"},
+                    {"name": "急性","value": "213"},
+                    {"name": "冠状病毒","value": "171"},
+                    {"name": "逆增长","value": "136"},
+                    {"name": "隔离","value": "114"},
+                    {"name": "检测盒","value": "98"},
+                    {"name": "阳性","value": "75"},
+                    {"name": "新增","value": "46"},
+                    {"name": "责任","value": "26"}],
+
+            } ]
+        };
+
+        chart.setOption(option);
+        window.onresize = chart.resize;
+        setTimeout("yuntu()",5000);
+    }
+
+
+    (function () {
+        yuntu();
+    })();
+
+</script>
+<script src="js/flexible.js"></script>
+</body>
+</html>
